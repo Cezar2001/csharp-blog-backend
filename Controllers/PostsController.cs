@@ -28,6 +28,7 @@ namespace csharp_blog_backend.Controllers
           {
               return NotFound();
           }
+
             return await _context.posts.ToListAsync();
         }
 
@@ -83,14 +84,34 @@ namespace csharp_blog_backend.Controllers
         // POST: api/Posts
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Post>> PostPost(Post post)
+        public async Task<ActionResult<Post>> PostPost([FromForm] Post post)
         {
-          if (_context.posts == null)
-          {
-              return Problem("Entity set 'BlogContext.posts'  is null.");
-          }
+            FileInfo fileInfo = new FileInfo(post.File.FileName);
+            post.Image = $"FileLocal{fileInfo.Extension}";
+
             _context.posts.Add(post);
             await _context.SaveChangesAsync();
+            //Estrazione File e salvataggio su file system.
+            //Agendo su Request ci prendiamo il file e lo salviamo su file system.
+            string Image = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot\\Files");
+
+            if (!Directory.Exists(Image))
+                Directory.CreateDirectory(Image);
+
+
+            string fileName = $"immagine-{post.Id}" + fileInfo.Extension;
+
+            string fileNameWithPath = Path.Combine(Image, fileName);
+
+            using (var stream = new FileStream(fileNameWithPath, FileMode.Create))
+            {
+                post.File.CopyTo(stream);
+            }
+
+            if (_context.posts == null)
+                return Problem("Entity set 'BlogContext.Posts'  is null.");
+
+            post.Image = "https://localhost:5000/Files/" + fileName;
 
             return CreatedAtAction("GetPost", new { id = post.Id }, post);
         }
