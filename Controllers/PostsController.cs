@@ -22,14 +22,18 @@ namespace csharp_blog_backend.Controllers
 
         // GET: api/Posts
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Post>>> Getposts()
+        public async Task<ActionResult<IEnumerable<Post>>> Getposts(string? stringa)
         {
           if (_context.posts == null)
           {
               return NotFound();
           }
 
-            return await _context.posts.ToListAsync();
+          if(stringa != null)
+                return await _context.posts.Where(item => item.Title.Contains(stringa) || item.Description.Contains(stringa)).ToListAsync();
+        
+          else
+                return await _context.posts.ToListAsync();
         }
 
         // GET: api/Posts/5
