@@ -93,7 +93,7 @@ namespace csharp_blog_backend.Controllers
            
             //Estrazione File e salvataggio su file system.
             //Agendo su Request ci prendiamo il file e lo salviamo su file system.
-            string Image = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot\\Files");
+            string Image = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/Files"); //"wwwroot\\Files"
 
             if (!Directory.Exists(Image))
                 Directory.CreateDirectory(Image);
