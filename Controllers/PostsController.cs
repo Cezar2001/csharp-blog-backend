@@ -87,19 +87,22 @@ namespace csharp_blog_backend.Controllers
         public async Task<ActionResult<Post>> PostPost([FromForm] Post post)
         {
             FileInfo fileInfo = new FileInfo(post.File.FileName);
-            //post.Image = $"FileLocal{fileInfo.Extension}";
+            //post.Image = $"FileLocal.{fileInfo.Extension}";
             Guid g = Guid.NewGuid();
             string fileName = g.ToString() + fileInfo.Extension;
-           
-            //Estrazione File e salvataggio su file system.
-            //Agendo su Request ci prendiamo il file e lo salviamo su file system.
-            string Image = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/Files"); //"wwwroot\\Files"
+
+            
+            string Image = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot\\Files");
 
             if (!Directory.Exists(Image))
                 Directory.CreateDirectory(Image);
 
             string fileNameWithPath = Path.Combine(Image, fileName);
-
+            byte[] b;
+            using (BinaryReader br = new BinaryReader(post.File.OpenReadStream()))
+            {
+                post.ImageBytes = br.ReadBytes((int)post.File.OpenReadStream().Length);
+            }
             using (var stream = new FileStream(fileNameWithPath, FileMode.Create))
             {
                 post.File.CopyTo(stream);
@@ -109,12 +112,11 @@ namespace csharp_blog_backend.Controllers
                 return Problem("Entity set 'BlogContext.Posts'  is null.");
 
             post.Image = "https://localhost:5000/Files/" + fileName;
-            
             _context.posts.Add(post);
             await _context.SaveChangesAsync();
-
             return CreatedAtAction("GetPost", new { id = post.Id }, post);
         }
+
 
         // DELETE: api/Posts/5
         [HttpDelete("{id}")]
